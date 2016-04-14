@@ -2,20 +2,17 @@ package entity
 
 import (
 	"fmt"
+	"github.com/gragas/jabberwock-lib/attributes"
 	"github.com/gragas/jabberwock-lib/inventory"
 	"strings"
 )
 
-type Health float32
-type Energy float32
-type Spirit float32
-
 type Entity struct {
 	Id                uint64
 	Name              string
-	Health, MaxHealth Health
-	Energy, MaxEnergy Energy
-	Spirit, MaxSpirit Spirit
+	Health, MaxHealth attributes.Health
+	Energy, MaxEnergy attributes.Energy
+	Spirit, MaxSpirit attributes.Spirit
 	X, Y, Xv, Yv      float32
 	Inventory         inventory.Inventory
 	Equipped          [20]*inventory.Item
@@ -77,6 +74,7 @@ const (
 	RightFootSlot
 	RingSlot
 	PiercingSlot
+	NotEquippableSlot
 )
 
 func (entity Entity) String() string {

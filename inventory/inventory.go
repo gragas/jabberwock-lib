@@ -8,9 +8,9 @@ import (
 type Quantity uint32
 
 type Item struct {
-	Name                      string
-	Durability, MaxDurability uint32
-	SlotNumber                int
+	Name       string
+	SlotNumber int
+	X, Y       float32
 }
 
 func (item Item) String() string {
