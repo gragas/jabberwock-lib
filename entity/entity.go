@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gragas/jabberwock-lib/attributes"
 	"github.com/gragas/jabberwock-lib/inventory"
@@ -13,6 +14,11 @@ type Entity struct {
 	Health, MaxHealth attributes.Health
 	Energy, MaxEnergy attributes.Energy
 	Spirit, MaxSpirit attributes.Spirit
+	Summoning         attributes.Summoning
+	Alteration        attributes.Alteration
+	Willpower         attributes.Willpower
+	Divinity          attributes.Divinity
+	Lifebringing      attributes.Lifebringing
 	X, Y, Xv, Yv      float32
 	Inventory         inventory.Inventory
 	Equipped          [20]*inventory.Item
@@ -57,9 +63,11 @@ func (entity Entity) RemoveFromInventory(position int) (*inventory.ItemStack, bo
 	return entity.Inventory.RemoveItemStack(position)
 }
 
-// These values are used to access the equipped member
-// of entities. E.g.,
-// entity.Equipped[HeadSlot] = $SOME_ITEM
+/*
+ * These values are used to access the equipped member
+ * of entities. E.g.,
+ * entity.Equipped[HeadSlot] = $SOME_ITEM
+ */
 const (
 	HeadSlot = iota
 	LeftShoulderSlot
@@ -77,27 +85,14 @@ const (
 	NotEquippableSlot
 )
 
-func (entity Entity) String() string {
-	var itemNames []string
-	for _, item := range entity.Equipped {
-		itemNames = append(itemNames, item.Name)
+func (e Entity) Bytes() []byte {
+	bytes, err := json.Marshal(e)
+	if err != nil {
+		panic(err)
 	}
-	return fmt.Sprintf("Entity <%v>\n"+
-		"name: %v\n"+
-		"health: %v\n"+
-		"maxHealth: %v\n"+
-		"energy: %v\n"+
-		"maxEnergy: %v\n"+
-		"spirit: %v\n"+
-		"maxSpirit: %v\n"+
-		"x, y: %.2f, %.2f\n"+
-		"xv, yv: %.2f, %.2f\n"+
-		"Inventory: %v\n"+
-		"Equipped: "+strings.Join(itemNames, ", "),
-		entity.Id, entity.Name,
-		entity.Health, entity.MaxHealth,
-		entity.Energy, entity.MaxEnergy,
-		entity.Spirit, entity.MaxSpirit,
-		entity.X, entity.Y, entity.Xv, entity.Yv,
-		entity.Inventory, entity.Equipped)
+	return bytes
+}
+
+func (e Entity) String() string {
+	return string(bytes)
 }

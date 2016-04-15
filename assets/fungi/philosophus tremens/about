@@ -1,6 +1,6 @@
 {
         "Name": "Philosophus Tremens",
-        "Description": "Philosophus tremens is a rare mushroom. It is known to grant extraordinary willpower to those who consume it.",                                                                                        
+        "Description": "Philosophus tremens is a rare mushroom. It is known to grant extraordinary willpower to those who consume it.",
         "Rarity": 2,
         "DurationEffect": {
                 "HealthModifier": 0,
