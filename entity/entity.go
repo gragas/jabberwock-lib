@@ -2,26 +2,24 @@ package entity
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gragas/jabberwock-lib/attributes"
 	"github.com/gragas/jabberwock-lib/inventory"
-	"strings"
 )
 
 type Entity struct {
-	Id                uint64
-	Name              string
-	Health, MaxHealth attributes.Health
-	Energy, MaxEnergy attributes.Energy
-	Spirit, MaxSpirit attributes.Spirit
-	Summoning         attributes.Summoning
-	Alteration        attributes.Alteration
-	Willpower         attributes.Willpower
-	Divinity          attributes.Divinity
-	Lifebringing      attributes.Lifebringing
-	X, Y, Xv, Yv      float32
-	Inventory         inventory.Inventory
-	Equipped          [20]*inventory.Item
+	ID                 uint64
+	Name               string
+	Health, MaxHealth  attributes.Health
+	Energy, MaxEnergy  attributes.Energy
+	Spirit, MaxSpirit  attributes.Spirit
+	Summoning          attributes.Summoning
+	Alteration         attributes.Alteration
+	Willpower          attributes.Willpower
+	Divinity           attributes.Divinity
+	Lifebringing       attributes.Lifebringing
+	X, Y, Xv, Yv, W, H float32
+	Inventory          inventory.Inventory
+	Equipped           [20]*inventory.Item
 }
 
 func (entity Entity) Equip(item inventory.Item, slotNumber int) bool {
@@ -94,5 +92,14 @@ func (e Entity) Bytes() []byte {
 }
 
 func (e Entity) String() string {
-	return string(bytes)
+	return string(e.Bytes())
+}
+
+func FromBytes(bytes []byte) (*Entity, error) {
+	var e Entity
+	err := json.Unmarshal(bytes, &e)
+	if err != nil {
+		return nil, err
+	}
+	return &e, nil
 }

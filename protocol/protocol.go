@@ -9,7 +9,10 @@ type Code byte
 const (
 	Register Code = iota
 	Success
+	GenerateEntityID
 )
+
+const EndOfMessage Code = '$'
 
 func (c Code) String() string {
 	switch c {
