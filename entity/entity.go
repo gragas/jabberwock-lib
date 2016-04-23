@@ -172,6 +172,19 @@ func IDString(e Entity) string {
 	return IDString
 }
 
+func FromIDString(str string) (uint64, error) {
+	for i, c := range str {
+		if c != '_' {
+			num, err := strconv.ParseUint(str[i:], 10, 64)
+			if err != nil {
+				return 0, err
+			}
+			return num, nil
+		}
+	}
+	return 0, errors.New("Could not parse ID from string!\n")
+}
+
 func StartMoveLocal(e Entity, dir Direction) {
 	switch dir {
 	case Up:
@@ -218,8 +231,14 @@ func StopMoveLocal(e Entity, dir Direction) {
 	}
 }
 
-func MoveNet(e Entity, conn net.Conn, code protocol.Code) {
-	msg := string(code) + IDString(e) + string(protocol.EndOfMessage)
+func MoveNet(e Entity, conn net.Conn, start bool, dir Direction) {
+	var msg string
+	if start {
+		msg = string(protocol.EntityStartMove)
+	} else {
+		msg = string(protocol.EntityStopMove)
+	}
+	msg += string(byte(dir)) + IDString(e) + string(protocol.EndOfMessage)
 	fmt.Fprintf(conn, string(msg))
 }
 

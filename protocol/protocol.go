@@ -11,14 +11,8 @@ const (
 	Success
 	Handshake
 	GenerateEntityID
-	EntityStartMoveRight
-	EntityStartMoveLeft
-	EntityStartMoveUp
-	EntityStartMoveDown
-	EntityStopMoveRight
-	EntityStopMoveLeft
-	EntityStopMoveUp
-	EntityStopMoveDown
+	EntityStartMove
+	EntityStopMove
 	UpdatePlayers
 )
 
@@ -34,22 +28,10 @@ func (c Code) String() string {
 		return "Handshake"
 	case GenerateEntityID:
 		return "GenerateEntityID"
-	case EntityStartMoveRight:
-		return "EntityStartMoveRight"
-	case EntityStartMoveLeft:
-		return "EntityStartMoveLeft"
-	case EntityStartMoveUp:
-		return "EntityStartMoveUp"
-	case EntityStartMoveDown:
-		return "EntityStartMoveDown"
-	case EntityStopMoveRight:
-		return "EntityStopMoveRight"
-	case EntityStopMoveLeft:
-		return "EntityStopMoveLeft"
-	case EntityStopMoveUp:
-		return "EntityStopMoveUp"
-	case EntityStopMoveDown:
-		return "EntityStopMoveDown"
+	case EntityStartMove:
+		return "EntityStartMove"
+	case EntityStopMove:
+		return "EntityStopMove"
 	case UpdatePlayers:
 		return "UpdatePlayers"
 	default:
