@@ -9,7 +9,7 @@ type Code byte
 const (
 	Register Code = iota
 	Success
-	BadMessageError
+	Handshake
 	GenerateEntityID
 	EntityStartMoveRight
 	EntityStartMoveLeft
@@ -30,8 +30,8 @@ func (c Code) String() string {
 		return "Register"
 	case Success:
 		return "Success"
-	case BadMessageError:
-		return "BadMessageError"
+	case Handshake:
+		return "Handshake"
 	case GenerateEntityID:
 		return "GenerateEntityID"
 	case EntityStartMoveRight:

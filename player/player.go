@@ -89,7 +89,7 @@ func (p *PlayerView) GetRect() *sdl.Rect { return p.Rect }
 func (p *PlayerView) SetRect(r *sdl.Rect) { p.Rect = r }
 
 func (p *Player) GetID() uint64 { return p.ID }
-func (p *Player) SetID(ID uint64) { p.ID = ID; fmt.Println(p.ID, ID) }
+func (p *Player) SetID(ID uint64) { p.ID = ID }
 func (p *Player) GetName() string { return p.Name }
 func (p *Player) SetName(Name string) { p.Name = Name }
 func (p *Player) GetHealth() attributes.Health { return p.Health }
