@@ -9,8 +9,10 @@ import (
 	"github.com/gragas/jabberwock-lib/entity"
 	"github.com/gragas/jabberwock-lib/inventory"
 	"github.com/gragas/jabberwock-lib/protocol"
-	"math"
-	"math/rand"
+	"github.com/gragas/jabberwock-lib/imgutils"
+//	"math"
+//	"math/rand"
+	"os"
 	"time"
 )
 
@@ -39,7 +41,7 @@ const (
 
 const (
 	DefaultPlayerViewA = 0x55
-	DefaultSpritePath  = "jabberwock-client/assets/soul/"
+	DefaultSpritePath  = "jabberwock-assets/soul/"
 )
 
 type Player struct {
@@ -83,10 +85,12 @@ func (p *PlayerView) Draw(r *sdl.Renderer, dest *sdl.Surface, delta time.Duratio
 
 	/* udpate the SpriteTicks for animations */
 	p.SetSpriteTicks((p.GetSpriteTicks() + delta) % p.GetSpriteDuration())
+	if !p.GetObject().GetMovingRight() && !p.GetObject().GetMovingLeft() && !p.GetObject().GetMovingUp() && !p.GetObject().GetMovingDown() {
+		
+	}
 	/*****************************************/
 
 	/* actually blit the playerview onto the destination surface */
-	// p.GetSurface().Blit(nil, dest, p.GetRect())
 	r.Copy(p.GetTexture(), nil, p.GetRect())
 	/*************************************************************/
 }
@@ -191,24 +195,23 @@ func NewDefaultPlayer() *Player {
 
 func (p *Player) NewDefaultPlayerView(r *sdl.Renderer) *PlayerView {
 	rect := sdl.Rect{int32(p.GetX()), int32(p.GetY()), int32(p.GetW()), int32(p.GetH())}
-	texture, err := r.CreateTexture(sdl.PIXELFORMAT_RGBA8888, sdl.TEXTUREACCESS_TARGET, int(p.GetW()), int(p.GetH()))
+	imgPath := DefaultSpritePath + "stationary/0.png"
+	texture, err := imgutils.TextureFromImage(r, imgPath)
 	if err != nil {
+		wd, err := os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(wd)
+		fmt.Printf("CLIENT: Could not load image '%s'\n", imgPath)
 		panic(err)
 	}
 	err = texture.SetBlendMode(sdl.BLENDMODE_BLEND)
 	if err != nil {
 		panic(err)
 	}
-	err = r.SetRenderTarget(texture); if err != nil { panic(err) }
-	err = r.SetDrawBlendMode(sdl.BLENDMODE_NONE); if err != nil { panic(err) }
-	err = r.SetDrawColor(uint8(rand.Float32() * math.MaxUint8),
-		uint8(rand.Float32() * math.MaxUint8),
-		uint8(rand.Float32() * math.MaxUint8),
-		DefaultPlayerViewA)
-	if err != nil { panic(err) }
-	err = r.FillRect(nil); if err != nil { panic(err) }
-	err = r.SetRenderTarget(nil); if err != nil { panic(err) }
 	err = r.SetDrawBlendMode(sdl.BLENDMODE_BLEND); if err != nil { panic(err) }
+	err = r.SetDrawColor(0xFF, 0xFF, 0xFF, 0xFF); if err != nil { panic(err) }
 	return &PlayerView{PlayerPtr: p,
 		Texture: texture,
 		Surface: nil, Rect: &rect,
