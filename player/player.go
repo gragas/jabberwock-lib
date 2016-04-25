@@ -190,18 +190,7 @@ func NewDefaultPlayer() *Player {
 }
 
 func (p *Player) NewDefaultPlayerView(r *sdl.Renderer) *PlayerView {
-	surf, err := sdl.CreateRGBSurface(0, int32(p.GetW()), int32(p.GetH()),
-		32, 0, 0, 0, 0)
-	if err != nil {
-		panic(err)
-	}
-	rect := sdl.Rect{int32(p.GetX()), int32(p.GetY()),
-		int32(p.GetW()), int32(p.GetH())}
-	err = surf.SetBlendMode(sdl.BLENDMODE_BLEND)
-	if err != nil {
-		panic(err)
-	}
-	surf.FillRect(nil, uint32(0x00755700))
+	rect := sdl.Rect{int32(p.GetX()), int32(p.GetY()), int32(p.GetW()), int32(p.GetH())}
 	texture, err := r.CreateTexture(sdl.PIXELFORMAT_RGBA8888, sdl.TEXTUREACCESS_TARGET, int(p.GetW()), int(p.GetH()))
 	if err != nil {
 		panic(err)
@@ -218,9 +207,11 @@ func (p *Player) NewDefaultPlayerView(r *sdl.Renderer) *PlayerView {
 		DefaultPlayerViewA)
 	if err != nil { panic(err) }
 	err = r.FillRect(nil); if err != nil { panic(err) }
+	err = r.SetRenderTarget(nil); if err != nil { panic(err) }
+	err = r.SetDrawBlendMode(sdl.BLENDMODE_BLEND); if err != nil { panic(err) }
 	return &PlayerView{PlayerPtr: p,
 		Texture: texture,
-		Surface: surf, Rect: &rect,
+		Surface: nil, Rect: &rect,
 		SpritePath: DefaultSpritePath,
 		SpriteTicks: time.Duration(0),
 		SpriteDuration: time.Duration(1 * time.Second)}
