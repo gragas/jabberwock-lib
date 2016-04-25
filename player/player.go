@@ -9,6 +9,9 @@ import (
 	"github.com/gragas/jabberwock-lib/entity"
 	"github.com/gragas/jabberwock-lib/inventory"
 	"github.com/gragas/jabberwock-lib/protocol"
+	"math"
+	"math/rand"
+	"time"
 )
 
 const (
@@ -34,6 +37,11 @@ const (
 	DefaultBaseSpeed    = 0.02
 )
 
+const (
+	DefaultPlayerViewA = 0x55
+	DefaultSpritePath  = "jabberwock-client/assets/soul/"
+)
+
 type Player struct {
 	ID                                             uint64
 	Name                                           string
@@ -53,9 +61,13 @@ type Player struct {
 }
 
 type PlayerView struct {
-	PlayerPtr *Player
-	Surface   *sdl.Surface
-	Rect      *sdl.Rect
+	PlayerPtr      *Player
+	Texture        *sdl.Texture
+	Surface        *sdl.Surface
+	Rect           *sdl.Rect
+	SpritePath     string
+	SpriteTicks    time.Duration
+	SpriteDuration time.Duration
 }
 
 func (p *Player) Update() {
@@ -63,10 +75,20 @@ func (p *Player) Update() {
 	// then do more stuff maybe
 }
 
-func (p *PlayerView) Draw(dest *sdl.Surface) {
+func (p *PlayerView) Draw(r *sdl.Renderer, dest *sdl.Surface, delta time.Duration) {
+	/* update the rect position */
 	p.GetRect().X = int32(p.GetObject().GetX())
 	p.GetRect().Y = int32(p.GetObject().GetY())
-	p.GetSurface().Blit(nil, dest, p.GetRect())
+	/****************************/
+
+	/* udpate the SpriteTicks for animations */
+	p.SetSpriteTicks((p.GetSpriteTicks() + delta) % p.GetSpriteDuration())
+	/*****************************************/
+
+	/* actually blit the playerview onto the destination surface */
+	// p.GetSurface().Blit(nil, dest, p.GetRect())
+	r.Copy(p.GetTexture(), nil, p.GetRect())
+	/*************************************************************/
 }
 
 func (p *PlayerView) GetObject() entity.Entity { return p.PlayerPtr }
@@ -84,9 +106,17 @@ func (p *Player) String() string {
 }
 
 func (p *PlayerView) GetSurface() *sdl.Surface { return p.Surface }
-func (p *PlayerView) SetSurface(surf *sdl.Surface) { p.Surface = surf }
+func (p *PlayerView) SetSurface(s *sdl.Surface) { p.Surface = s }
 func (p *PlayerView) GetRect() *sdl.Rect { return p.Rect }
 func (p *PlayerView) SetRect(r *sdl.Rect) { p.Rect = r }
+func (p *PlayerView) GetTexture() *sdl.Texture { return p.Texture }
+func (p *PlayerView) SetTexture(t *sdl.Texture) { p.Texture = t }
+func (p *PlayerView) GetSpritePath() string { return p.SpritePath }
+func (p *PlayerView) SetSpritePath(path string) { p.SpritePath = path }
+func (p *PlayerView) GetSpriteTicks() time.Duration { return p.SpriteTicks }
+func (p *PlayerView) SetSpriteTicks(t time.Duration) { p.SpriteTicks = t }
+func (p *PlayerView) GetSpriteDuration() time.Duration { return p.SpriteDuration }
+func (p *PlayerView) SetSpriteDuration(d time.Duration) { p.SpriteDuration = d }
 
 func (p *Player) GetID() uint64 { return p.ID }
 func (p *Player) SetID(ID uint64) { p.ID = ID }
@@ -157,6 +187,43 @@ func NewDefaultPlayer() *Player {
 		W: DefaultW, H: DefaultH,
 		BaseSpeed: DefaultBaseSpeed}
 	return &p
+}
+
+func (p *Player) NewDefaultPlayerView(r *sdl.Renderer) *PlayerView {
+	surf, err := sdl.CreateRGBSurface(0, int32(p.GetW()), int32(p.GetH()),
+		32, 0, 0, 0, 0)
+	if err != nil {
+		panic(err)
+	}
+	rect := sdl.Rect{int32(p.GetX()), int32(p.GetY()),
+		int32(p.GetW()), int32(p.GetH())}
+	err = surf.SetBlendMode(sdl.BLENDMODE_BLEND)
+	if err != nil {
+		panic(err)
+	}
+	surf.FillRect(nil, uint32(0x00755700))
+	texture, err := r.CreateTexture(sdl.PIXELFORMAT_RGBA8888, sdl.TEXTUREACCESS_TARGET, int(p.GetW()), int(p.GetH()))
+	if err != nil {
+		panic(err)
+	}
+	err = texture.SetBlendMode(sdl.BLENDMODE_BLEND)
+	if err != nil {
+		panic(err)
+	}
+	err = r.SetRenderTarget(texture); if err != nil { panic(err) }
+	err = r.SetDrawBlendMode(sdl.BLENDMODE_NONE); if err != nil { panic(err) }
+	err = r.SetDrawColor(uint8(rand.Float32() * math.MaxUint8),
+		uint8(rand.Float32() * math.MaxUint8),
+		uint8(rand.Float32() * math.MaxUint8),
+		DefaultPlayerViewA)
+	if err != nil { panic(err) }
+	err = r.FillRect(nil); if err != nil { panic(err) }
+	return &PlayerView{PlayerPtr: p,
+		Texture: texture,
+		Surface: surf, Rect: &rect,
+		SpritePath: DefaultSpritePath,
+		SpriteTicks: time.Duration(0),
+		SpriteDuration: time.Duration(1 * time.Second)}
 }
 
 func (p *Player) FromBytes(bytes []byte) error {

@@ -251,7 +251,7 @@ func NewDefaultEntityView(e Entity) (*sdl.Surface, *sdl.Rect) {
 	}
 	rect := sdl.Rect{int32(e.GetX()), int32(e.GetY()),
 		int32(e.GetW()), int32(e.GetH())}
-	surf.FillRect(nil, uint32(0xFFFFFFFF))
+	surf.FillRect(nil, uint32(0x55555555))
 	return surf, &rect
 }
 
