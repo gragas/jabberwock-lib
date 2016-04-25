@@ -8,6 +8,7 @@ import (
 	"github.com/gragas/jabberwock-lib/attributes"
 	"github.com/gragas/jabberwock-lib/inventory"
 	"github.com/gragas/jabberwock-lib/protocol"
+	"github.com/gragas/jabberwock-server/serverutils"
 	"net"
 	"strconv"
 )
@@ -255,6 +256,6 @@ func NewDefaultEntityView(e Entity) (*sdl.Surface, *sdl.Rect) {
 }
 
 func Update(e Entity) {
-	e.SetX(e.GetX() + e.GetXV())
-	e.SetY(e.GetY() + e.GetYV())
+	e.SetX(e.GetX() + e.GetXV() * serverutils.Delta)
+	e.SetY(e.GetY() + e.GetYV() * serverutils.Delta)
 }

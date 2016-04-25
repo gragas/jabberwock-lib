@@ -31,7 +31,7 @@ const (
 	DefaultYV           = 0.0
 	DefaultW            = 25
 	DefaultH            = 75
-	DefaultBaseSpeed    = 0.85
+	DefaultBaseSpeed    = 0.02
 )
 
 type Player struct {
