@@ -211,7 +211,6 @@ func (p *Player) NewDefaultPlayerView(r *sdl.Renderer) *PlayerView {
 		panic(err)
 	}
 	err = r.SetDrawBlendMode(sdl.BLENDMODE_BLEND); if err != nil { panic(err) }
-	err = r.SetDrawColor(0xFF, 0xFF, 0xFF, 0xFF); if err != nil { panic(err) }
 	return &PlayerView{PlayerPtr: p,
 		Texture: texture,
 		Surface: nil, Rect: &rect,
