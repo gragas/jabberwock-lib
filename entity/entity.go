@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gragas/go-sdl2/sdl"
@@ -74,16 +73,18 @@ type Entity interface {
 	GetInventory() *inventory.Inventory
 	GetEquipped() *([20]*inventory.Item)
 	Update()
+	Bytes() []byte
+	String() string
 	FromBytes(bytes []byte) error
 }
 
 type EntityView interface {
 	Draw(dest *sdl.Surface)
-	GetObject() Entity
+	Object() Entity
 	SetObject(e Entity)
-	GetSurface() *sdl.Surface
+	Surface() *sdl.Surface
 	SetSurface(surf *sdl.Surface)
-	GetRect() *sdl.Rect
+	Rect() *sdl.Rect
 	SetRect(r *sdl.Rect)
 }
 
@@ -147,18 +148,6 @@ const (
 	PiercingSlot
 	NotEquippableSlot
 )
-
-func Bytes(e Entity) []byte {
-	bytes, err := json.Marshal(e)
-	if err != nil {
-		panic(err)
-	}
-	return bytes
-}
-
-func String(e Entity) string {
-	return string(Bytes(e))
-}
 
 func ShortString(e Entity) string {
 	return fmt.Sprintf("<%T %v>", e, e.GetID())
@@ -256,6 +245,6 @@ func NewDefaultEntityView(e Entity) (*sdl.Surface, *sdl.Rect) {
 }
 
 func Update(e Entity) {
-	e.SetX(e.GetX() + e.GetXV() * serverutils.Delta)
-	e.SetY(e.GetY() + e.GetYV() * serverutils.Delta)
+	e.SetX(e.GetX() + e.GetXV()*serverutils.Delta)
+	e.SetY(e.GetY() + e.GetYV()*serverutils.Delta)
 }

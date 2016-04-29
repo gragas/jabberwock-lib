@@ -10,42 +10,46 @@ import (
 	"github.com/gragas/jabberwock-lib/inventory"
 	"github.com/gragas/jabberwock-lib/protocol"
 	"github.com/gragas/jabberwock-lib/imgutils"
+	"github.com/gragas/jabberwock-lib/textures"
 //	"math"
 //	"math/rand"
 	"os"
+	"path/filepath"
+	"strconv"
 	"time"
 )
 
 const (
-	DefaultID           = uint64(protocol.GenerateEntityID)
-	DefaultName         = "Default Name"
-	DefaultHealth       = 10.0
-	DefaultMaxHealth    = 10.0
-	DefaultEnergy       = 10.0
-	DefaultMaxEnergy    = 10.0
-	DefaultSpirit       = 10.0
-	DefaultMaxSpirit    = 10.0
-	DefaultSummoning    = 5.0
-	DefaultAlteration   = 5.0
-	DefaultWillpower    = 5.0
-	DefaultDivinity     = 5.0
-	DefaultLifebringing = 5.0
-	DefaultX            = 20.0
-	DefaultY            = 20.0
-	DefaultXV           = 0.0
-	DefaultYV           = 0.0
-	DefaultW            = 25
-	DefaultH            = 75
-	DefaultBaseSpeed    = 0.02
+	DefaultID            = uint64(protocol.GenerateEntityID)
+	DefaultName          = "Default Name"
+	DefaultHealth        = 10.0
+	DefaultMaxHealth     = 10.0
+	DefaultEnergy        = 10.0
+	DefaultMaxEnergy     = 10.0
+	DefaultSpirit        = 10.0
+	DefaultMaxSpirit     = 10.0
+	DefaultSummoning     = 5.0
+	DefaultAlteration    = 5.0
+	DefaultWillpower     = 5.0
+	DefaultDivinity      = 5.0
+	DefaultLifebringing  = 5.0
+	DefaultX             = 20.0
+	DefaultY             = 20.0
+	DefaultXV            = 0.0
+	DefaultYV            = 0.0
+	DefaultW             = 25
+	DefaultH             = 75
+	DefaultBaseSpeed     = 0.02
 )
 
 const (
-	DefaultPlayerViewA = 0x55
-	DefaultSpritePath  = "jabberwock-assets/soul/"
+	DefaultPlayerViewA     = 0x55
+	DefaultSpritePath      = "jabberwock-assets" + string(filepath.Separator) + "soul"
+	DefaultSpriteDuration  = time.Duration(333 * time.Millisecond)
 )
 
 type Player struct {
-	ID                                             uint64
+	Id                                             uint64
 	Name                                           string
 	Health, MaxHealth                              attributes.Health
 	Energy, MaxEnergy                              attributes.Energy
@@ -63,13 +67,23 @@ type Player struct {
 }
 
 type PlayerView struct {
-	PlayerPtr      *Player
-	Texture        *sdl.Texture
-	Surface        *sdl.Surface
-	Rect           *sdl.Rect
-	SpritePath     string
-	SpriteTicks    time.Duration
-	SpriteDuration time.Duration
+	PlayerPtr             *Player
+	Texture               *sdl.Texture
+	Surface               *sdl.Surface
+	Rect                  *sdl.Rect
+	SpritePath            string
+	SpriteTicks           time.Duration
+	SpriteDuration        time.Duration
+	NumStationarySprites  int
+	NumMovingRightSprites int
+	NumMovingLeftSprites  int
+	NumMovingUpSprites    int
+	NumMovingDownSprites  int
+	StationarySprites     []*sdl.Texture
+	MovingRightSprites    []*sdl.Texture
+	MovingLeftSprites     []*sdl.Texture
+	MovingUpSprites       []*sdl.Texture
+	MovingDownSprites     []*sdl.Texture
 }
 
 func (p *Player) Update() {
@@ -79,51 +93,50 @@ func (p *Player) Update() {
 
 func (p *PlayerView) Draw(r *sdl.Renderer, dest *sdl.Surface, delta time.Duration) {
 	/* update the rect position */
-	p.GetRect().X = int32(p.GetObject().GetX())
-	p.GetRect().Y = int32(p.GetObject().GetY())
+	p.Rect.X = int32(p.PlayerPtr.X)
+	p.Rect.Y = int32(p.PlayerPtr.Y)
 	/****************************/
 
 	/* udpate the SpriteTicks for animations */
-	p.SetSpriteTicks((p.GetSpriteTicks() + delta) % p.GetSpriteDuration())
-	if !p.GetObject().GetMovingRight() && !p.GetObject().GetMovingLeft() && !p.GetObject().GetMovingUp() && !p.GetObject().GetMovingDown() {
-		
+	p.SpriteTicks = (p.SpriteTicks + delta) % p.SpriteDuration
+	spritePercent := float32(p.SpriteTicks) / float32(p.SpriteDuration)
+	player := p.PlayerPtr
+	if !player.Moving() {
+		p.Texture = p.StationarySprites[int(spritePercent * float32(p.NumStationarySprites))]
+	} else if player.MovingRight {
+		p.Texture = p.MovingRightSprites[int(spritePercent * float32(p.NumMovingRightSprites))]
+	} else if player.MovingLeft {
+		p.Texture = p.MovingLeftSprites[int(spritePercent * float32(p.NumMovingLeftSprites))]
+	} else if player.MovingUp {
+		p.Texture = p.MovingUpSprites[int(spritePercent * float32(p.NumMovingUpSprites))]
+	}  else if player.MovingDown {
+		p.Texture = p.MovingDownSprites[int(spritePercent * float32(p.NumMovingDownSprites))]
 	}
 	/*****************************************/
 
 	/* actually blit the playerview onto the destination surface */
-	r.Copy(p.GetTexture(), nil, p.GetRect())
+	r.Copy(p.Texture, nil, p.Rect)
 	/*************************************************************/
 }
 
-func (p *PlayerView) GetObject() entity.Entity { return p.PlayerPtr }
-func (p *PlayerView) SetObject(e entity.Entity) {
-	switch e.(type) {
-	case *Player:
-		p.PlayerPtr = e.(*Player)
-	default:
-		panic(errors.New(fmt.Sprintf("Cannot set a PlayerView's PlayerPtr equal to a %T", e)))
+func (p *Player) Bytes() []byte {
+	bytes, err := json.Marshal(p)
+	if err != nil {
+		panic(err)
 	}
+	return bytes
 }
 
 func (p *Player) String() string {
-	return entity.String(p)
+	return string(p.Bytes())
 }
 
-func (p *PlayerView) GetSurface() *sdl.Surface { return p.Surface }
-func (p *PlayerView) SetSurface(s *sdl.Surface) { p.Surface = s }
-func (p *PlayerView) GetRect() *sdl.Rect { return p.Rect }
-func (p *PlayerView) SetRect(r *sdl.Rect) { p.Rect = r }
-func (p *PlayerView) GetTexture() *sdl.Texture { return p.Texture }
-func (p *PlayerView) SetTexture(t *sdl.Texture) { p.Texture = t }
-func (p *PlayerView) GetSpritePath() string { return p.SpritePath }
-func (p *PlayerView) SetSpritePath(path string) { p.SpritePath = path }
-func (p *PlayerView) GetSpriteTicks() time.Duration { return p.SpriteTicks }
-func (p *PlayerView) SetSpriteTicks(t time.Duration) { p.SpriteTicks = t }
-func (p *PlayerView) GetSpriteDuration() time.Duration { return p.SpriteDuration }
-func (p *PlayerView) SetSpriteDuration(d time.Duration) { p.SpriteDuration = d }
+func (p *Player) Moving() bool {
+	return p.GetMovingRight() || p.GetMovingLeft() || p.GetMovingUp() || p.GetMovingDown()
+}
 
-func (p *Player) GetID() uint64 { return p.ID }
-func (p *Player) SetID(ID uint64) { p.ID = ID }
+func (p *Player) GetID() uint64 { return p.Id }
+func (p *Player) SetID(id uint64) { p.Id = id }
 func (p *Player) GetName() string { return p.Name }
 func (p *Player) SetName(Name string) { p.Name = Name }
 func (p *Player) GetHealth() attributes.Health { return p.Health }
@@ -171,10 +184,12 @@ func (p *Player) SetMovingRight(movingRight bool) { p.MovingRight = movingRight 
 func (p *Player) GetBaseSpeed() float32 { return p.BaseSpeed }
 func (p *Player) SetBaseSpeed(baseSpeed float32) { p.BaseSpeed = baseSpeed }
 func (p *Player) GetInventory() *inventory.Inventory { return p.Inventory }
+func (p *Player) SetInventory(i *inventory.Inventory) { p.Inventory = i }
 func (p *Player) GetEquipped() *([20]*inventory.Item) { return p.Equipped }
+func (p *Player) SetEquipped(e *([20]*inventory.Item)) { p.Equipped = e }
 
 func NewDefaultPlayer() *Player {
-	p := Player{ID: DefaultID,
+	p := Player{Id: DefaultID,
 		Name: DefaultName,
 		Health: DefaultHealth,
 		MaxHealth: DefaultMaxHealth,
@@ -193,32 +208,126 @@ func NewDefaultPlayer() *Player {
 	return &p
 }
 
+func isValidSpriteImage(name string) bool {
+	lenName := len(name)
+	if lenName < 5 {
+		return false
+	}
+	if name[lenName-4:] != ".png" {
+		return false
+	}
+	numString := name[:lenName-4]
+	_, err := strconv.ParseUint(numString, 10, 64)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
 func (p *Player) NewDefaultPlayerView(r *sdl.Renderer) *PlayerView {
+	/* Create an sdl.Rect */
 	rect := sdl.Rect{int32(p.GetX()), int32(p.GetY()), int32(p.GetW()), int32(p.GetH())}
-	imgPath := DefaultSpritePath + "stationary/0.png"
-	texture, err := imgutils.TextureFromImage(r, imgPath)
-	if err != nil {
-		wd, err := os.Getwd()
-		if err != nil {
-			panic(err)
+
+	/* Initialize slices */
+	sliceCap := 5
+	stationarySprites := make([]*sdl.Texture, sliceCap)
+	movingRightSprites := make([]*sdl.Texture, sliceCap)
+	movingLeftSprites := make([]*sdl.Texture, sliceCap)
+	movingUpSprites := make([]*sdl.Texture, sliceCap)
+	movingDownSprites := make([]*sdl.Texture, sliceCap)
+
+	/* Gather the sprite images for this *PlayerView */
+	baseImgPath := DefaultSpritePath
+	subPaths := [...]string{"stationary", "movingRight", "movingLeft", "movingUp", "movingDown"}
+	var counts [5]int
+	for i, subPath := range subPaths {
+		dirPath := baseImgPath + string(filepath.Separator) + subPath
+		if _, err := os.Stat(dirPath); err == nil { // if the directory exists
+			d, err := os.Open(dirPath); defer d.Close() //open the directory
+			if err != nil { panic(err) }
+			fileinfos, err := d.Readdir(-1) // get the fileinfos
+			if err != nil { panic(err) }
+			for _, fileinfo := range fileinfos {
+				filePath := dirPath + string(filepath.Separator) + fileinfo.Name()
+				if fileinfo.Mode().IsRegular() && isValidSpriteImage(fileinfo.Name()) {
+					var texture *sdl.Texture
+					if textures.Textures[filePath] == nil {
+						texture, err = imgutils.TextureFromImage(r, filePath)
+						if err != nil {
+							wd, wderr := os.Getwd()
+							if wderr == nil { fmt.Println("pwd:", wd) }
+							fmt.Printf("CLIENT: Could not load image '%s'\n", filePath)
+							panic(err)
+						}
+						textures.Textures[filePath] = texture // cache it
+					} else {
+						texture = textures.Textures[filePath] // retrieve from cache
+					}
+					if texture == nil {
+						fmt.Printf("Failed to load texture '%s'\n", filePath)
+						continue
+					}
+					err = texture.SetBlendMode(sdl.BLENDMODE_BLEND)
+					if err != nil { panic(err) }
+					if counts[i] < sliceCap {
+						switch subPaths[i] {
+						case "stationary":
+							stationarySprites[counts[i]] = texture
+						case "movingRight":
+							movingRightSprites[counts[i]] = texture
+						case "movingLeft":
+							movingLeftSprites[counts[i]] = texture
+						case "movingUp":
+							movingUpSprites[counts[i]] = texture
+						case "movingDown":
+							movingDownSprites[counts[i]] = texture
+						}
+					} else {
+						switch subPaths[i] {
+						case "stationary":
+							stationarySprites = append(stationarySprites, texture)
+						case "movingRight":
+							movingRightSprites = append(movingRightSprites, texture)
+						case "movingLeft":
+							movingLeftSprites = append(movingLeftSprites, texture)
+						case "movingUp":
+							movingUpSprites = append(movingUpSprites, texture)
+						case "movingDown":
+							movingDownSprites = append(movingDownSprites, texture)
+						}
+					}
+					counts[i]++ // found another valid sprite image for this subPath
+				}
+			}		
 		}
-		fmt.Println(wd)
-		fmt.Printf("CLIENT: Could not load image '%s'\n", imgPath)
-		panic(err)
 	}
-	err = texture.SetBlendMode(sdl.BLENDMODE_BLEND)
-	if err != nil {
-		panic(err)
+	
+	/* If we failed to load at least one stationary sprite */
+	if counts[0] < 1 {
+		panic(errors.New("Failed to load at least one stationary sprite!\n"))
 	}
-	err = r.SetDrawBlendMode(sdl.BLENDMODE_BLEND); if err != nil { panic(err) }
+
+	/* Reset the draw blend mode of the renderer */
+	err := r.SetDrawBlendMode(sdl.BLENDMODE_BLEND); if err != nil { panic(err) }
+
 	return &PlayerView{PlayerPtr: p,
-		Texture: texture,
+		Texture: stationarySprites[0],
 		Surface: nil, Rect: &rect,
 		SpritePath: DefaultSpritePath,
 		SpriteTicks: time.Duration(0),
-		SpriteDuration: time.Duration(1 * time.Second)}
+		SpriteDuration: DefaultSpriteDuration,
+		NumStationarySprites: counts[0],
+		NumMovingRightSprites: counts[1],
+		NumMovingLeftSprites: counts[2],
+		NumMovingUpSprites: counts[3],
+		NumMovingDownSprites: counts[4],
+		StationarySprites: stationarySprites,
+		MovingRightSprites: movingRightSprites,
+		MovingLeftSprites: movingLeftSprites,
+		MovingUpSprites: movingUpSprites,
+		MovingDownSprites: movingDownSprites}
 }
 
 func (p *Player) FromBytes(bytes []byte) error {
-	return json.Unmarshal(bytes, &p)
+	return json.Unmarshal(bytes, p)
 }
