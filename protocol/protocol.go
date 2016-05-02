@@ -14,6 +14,7 @@ const (
 	EntityStartMove
 	EntityStopMove
 	UpdatePlayers
+	Disconnect
 )
 
 const EndOfMessage Code = '$'
@@ -34,6 +35,8 @@ func (c Code) String() string {
 		return "EntityStopMove"
 	case UpdatePlayers:
 		return "UpdatePlayers"
+	case Disconnect:
+		return "Disconnect"
 	default:
 		panic(errors.New("Invalid protocol.Code.\n"))
 	}

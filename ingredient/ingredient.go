@@ -2,15 +2,16 @@ package ingredient
 
 import (
 	"encoding/json"
+	"github.com/gragas/go-sdl2"
 	"github.com/gragas/jabberwock-lib/attributes"
 	"github.com/gragas/jabberwock-lib/effect"
 	"io/ioutil"
 )
 
-type Rarity int
+type Rarity float32
 
 const (
-	Common = iota
+	Common   = 1.0 / float32(1 << iota)
 	Uncommon
 	Rare
 	UltraRare
@@ -23,6 +24,24 @@ type Ingredient struct {
 	Rarity          Rarity
 	DurationEffect  effect.DurationEffect
 	ImmediateEffect effect.ImmediateEffect
+}
+
+type IngredientView struct {
+	Name string
+	Texture *sdl.Texture
+}
+
+var Ingredients map[string]*Ingredient
+var Plantae map[string]*Ingredient
+var Fungi map[string]*Ingredient
+
+func Init() {
+	Ingredients := make(map[string]*Ingredient)
+	Plantae := make(map[string]*Ingredient)
+	Fungi := make(map[string]*Ingredient)
+
+	// load all fungi
+	
 }
 
 func (i Ingredient) Bytes() []byte {

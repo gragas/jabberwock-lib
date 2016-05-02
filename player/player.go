@@ -91,7 +91,7 @@ func (p *Player) Update() {
 	// then do more stuff maybe
 }
 
-func (p *PlayerView) Draw(r *sdl.Renderer, dest *sdl.Surface, delta time.Duration) {
+func (p *PlayerView) Draw(r *sdl.Renderer, delta time.Duration) {
 	/* update the rect position */
 	p.Rect.X = int32(p.PlayerPtr.X)
 	p.Rect.Y = int32(p.PlayerPtr.Y)
@@ -184,9 +184,7 @@ func (p *Player) SetMovingRight(movingRight bool) { p.MovingRight = movingRight 
 func (p *Player) GetBaseSpeed() float32 { return p.BaseSpeed }
 func (p *Player) SetBaseSpeed(baseSpeed float32) { p.BaseSpeed = baseSpeed }
 func (p *Player) GetInventory() *inventory.Inventory { return p.Inventory }
-func (p *Player) SetInventory(i *inventory.Inventory) { p.Inventory = i }
 func (p *Player) GetEquipped() *([20]*inventory.Item) { return p.Equipped }
-func (p *Player) SetEquipped(e *([20]*inventory.Item)) { p.Equipped = e }
 
 func NewDefaultPlayer() *Player {
 	p := Player{Id: DefaultID,
